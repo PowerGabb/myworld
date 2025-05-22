@@ -1,0 +1,1 @@
+web: gunicorn kisagold.wsgi --log-file -

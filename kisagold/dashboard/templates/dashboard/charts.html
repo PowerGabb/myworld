@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Charts</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Price Trends per Platform</h1>
+  <canvas id="trendChart" width="800" height="400"></canvas>
+
+  <h1>Compare Buy Price at Selected Date</h1>
+  <select id="datePicker"></select>
+  <canvas id="barChart" width="800" height="400"></canvas>
+
+  <!-- Inject data dari Django -->
+  <script>
+    // parse JSON yang kita kirim dari view
+    const dates = JSON.parse('{{ dates_json|escapejs }}');
+    const data  = JSON.parse('{{ data_json|escapejs }}');
+  </script>
+
+  <script>
+  // 1) Time-series Line Chart
+  const trendCtx = document.getElementById('trendChart').getContext('2d');
+  const trendDatasets = Object.entries(data).map(([platform, series]) => ({
+    label: platform,
+    data: dates.map(d => series[d]?.buyPrice ?? null),
+    fill: false,
+    tension: 0.1
+  }));
+
+  new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: trendDatasets
+    },
+    options: {
+      scales: {
+        x: { display: true, title: { display: true, text: 'Date' } },
+        y: { display: true, title: { display: true, text: 'Buy Price (IDR)' } }
+      }
+    }
+  });
+  </script>
+
+  <script>
+  // 2) Bar Chart Cross-Section
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  const platforms = Object.keys(data);
+
+  // helper: build dataset for a given date
+  function buildBarData(date) {
+    return platforms.map(p => data[p][date]?.buyPrice ?? 0);
+  }
+
+  // populate dropdown
+  const picker = document.getElementById('datePicker');
+  dates.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d; opt.text = d;
+    picker.append(opt);
+  });
+  // default ke tanggal pertama
+  picker.value = dates[0];
+
+  // initial bar chart
+  const barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: platforms,
+      datasets: [{
+        label: `Buy Price on ${dates[0]}`,
+        data: buildBarData(dates[0])
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        x: { title: { display: true, text: 'Buy Price (IDR)' } },
+        y: { title: { display: false } }
+      }
+    }
+  });
+
+  // update saat datePicker berubah
+  picker.addEventListener('change', () => {
+    const date = picker.value;
+    barChart.data.datasets[0].data = buildBarData(date);
+    barChart.data.datasets[0].label = `Buy Price on ${date}`;
+    barChart.update();
+  });
+  </script>
+
+</body>
+</html>
