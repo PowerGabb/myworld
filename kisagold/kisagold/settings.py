@@ -24,9 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-0brw*$3lo-!q_=*9l-&##)=3x!v(#$y_ex&=s8l-^zw!6%fmk)"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'primary-gabi-persona-global-software-fe95a607.koyeb.app',
+    '.koyeb.app'  # Mengizinkan semua subdomain koyeb.app
+]
 
 
 # Application definition
